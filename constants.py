@@ -1,1 +1,7 @@
-s
+TITLE = "Pixel RPG"
+
+WIDTH = 960
+HEIGHT = 540
+FPS = 60
+
+BG_COLOR = (18, 18, 24)
