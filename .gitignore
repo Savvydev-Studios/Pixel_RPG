@@ -1,0 +1,34 @@
+﻿# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Saves (ignore only json save files)
+saves/*.json
+
+# Editor junk (optional)
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+assets/
+
+# Python
+__pycache__/
+*.pyc
+
+# Saves / runtime data
+saves/
+*.json
+
+# Pygame / OS junk
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Virtual envs
+.venv/
+venv/

@@ -1,0 +1,7 @@
+* text=auto
+*.py text eol=lf
+
+# Force LF in repo for code files
+*.py text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
