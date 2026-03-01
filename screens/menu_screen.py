@@ -34,7 +34,8 @@ class MenuScreen(Screen):
 
         def go_new() -> None:
             if self.manager:
-                self.manager.set(MessageScreen("New Game", "Character creator comes in Step 4."))
+                from .name_screen import NameScreen
+                self.manager.set(NameScreen())
 
         def go_load() -> None:
             if self.manager:

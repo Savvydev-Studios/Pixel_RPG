@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 import pygame
 
 from .base import Screen
@@ -8,11 +8,15 @@ from .base import Screen
 class ScreenManager:
     """
     Owns the current screen and handles clean screen switching.
+    Also provides a small shared store for passing data between screens.
     """
 
     def __init__(self, request_quit: Callable[[], None]) -> None:
         self._request_quit = request_quit
         self.current: Optional[Screen] = None
+
+        # Shared data between screens (character draft, save slot info, etc.)
+        self.store: dict[str, Any] = {}
 
     def set(self, screen: Screen) -> None:
         if self.current is not None:
