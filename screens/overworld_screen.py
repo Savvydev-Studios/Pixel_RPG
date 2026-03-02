@@ -1,35 +1,129 @@
 from __future__ import annotations
+from dataclasses import dataclass
 import pygame
 
-from .base import Screen
+from systems.controls import Controls
 
 
-class OverworldScreen(Screen):
-    def __init__(self) -> None:
-        super().__init__()
-        self.font_title = pygame.font.Font(None, 54)
-        self.font = pygame.font.Font(None, 28)
+TILE = 32
 
-    def handle_event(self, event: pygame.event.Event) -> None:
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and self.manager:
-            from .menu_screen import MenuScreen
-            self.manager.set(MenuScreen())
 
-    def render(self, surface: pygame.Surface) -> None:
-        w, h = surface.get_size()
+@dataclass
+class Player:
+    tx: int
+    ty: int
+    facing: str = "down"  # "up" | "down" | "left" | "right"
 
-        title = self.font_title.render("Overworld (placeholder)", True, (240, 240, 240))
-        surface.blit(title, title.get_rect(center=(w // 2, h // 2 - 40)))
 
-        name = "?"
-        cls = "?"
-        if self.manager and "character" in self.manager.store:
-            data = self.manager.store["character"]
-            name = str(data.get("name", "?"))
-            cls = str(data.get("class", "?"))
+@dataclass
+class World:
+    tiles: list[list[int]]  # 0=floor, 1=wall
 
-        info = self.font.render(f"Character: {name}  |  Class: {cls}", True, (200, 200, 200))
-        surface.blit(info, info.get_rect(center=(w // 2, h // 2 + 20)))
+    @property
+    def w(self) -> int:
+        return len(self.tiles[0]) if self.tiles else 0
 
-        hint = self.font.render("ESC to return to menu", True, (200, 200, 200))
-        surface.blit(hint, hint.get_rect(center=(w // 2, h // 2 + 70)))
+    @property
+    def h(self) -> int:
+        return len(self.tiles)
+
+    def is_blocked(self, tx: int, ty: int) -> bool:
+        if tx < 0 or ty < 0 or ty >= self.h or tx >= self.w:
+            return True
+        return self.tiles[ty][tx] == 1
+
+
+def make_test_world(w: int = 40, h: int = 26) -> World:
+    tiles = [[0 for _ in range(w)] for _ in range(h)]
+    for x in range(w):
+        tiles[0][x] = 1
+        tiles[h - 1][x] = 1
+    for y in range(h):
+        tiles[y][0] = 1
+        tiles[y][w - 1] = 1
+
+    for x in range(6, 18):
+        tiles[8][x] = 1
+    for y in range(10, 18):
+        tiles[y][22] = 1
+    for x in range(26, 34):
+        tiles[16][x] = 1
+
+    return World(tiles)
+
+
+class OverworldController:
+    """
+    Tile movement with hold-to-walk repeat + sprint.
+    Still one tile per step. Sprint = faster repeat, not bigger steps.
+    """
+    def __init__(self, world: World, player: Player) -> None:
+        self.world = world
+        self.player = player
+
+        self.walk_delay = 0.30
+        self.walk_interval = 0.14
+
+        self.sprint_delay = 0.20
+        self.sprint_interval = 0.10
+
+        self._held_dir: tuple[int, int] | None = None
+        self._timer = 0.0
+
+    def try_move(self, dx: int, dy: int) -> bool:
+        nx = self.player.tx + dx
+        ny = self.player.ty + dy
+        if self.world.is_blocked(nx, ny):
+            return False
+        self.player.tx = nx
+        self.player.ty = ny
+        return True
+
+    def _dir_from_keys(self, keys) -> tuple[int, int] | None:
+        # Priority: vertical then horizontal (classic RPG feel)
+        if Controls.pressed(keys, "move_up"):
+            return (0, -1)
+        if Controls.pressed(keys, "move_down"):
+            return (0, 1)
+        if Controls.pressed(keys, "move_left"):
+            return (-1, 0)
+        if Controls.pressed(keys, "move_right"):
+            return (1, 0)
+        return None
+
+    def _facing_from_dir(self, d: tuple[int, int]) -> str:
+        dx, dy = d
+        if dx == 1:
+            return "right"
+        if dx == -1:
+            return "left"
+        if dy == -1:
+            return "up"
+        return "down"
+
+    def update(self, dt: float, keys) -> bool:
+        desired = self._dir_from_keys(keys)
+
+        if desired is None:
+            self._held_dir = None
+            self._timer = 0.0
+            return False
+
+        self.player.facing = self._facing_from_dir(desired)
+
+        sprint = Controls.pressed(keys, "sprint")
+        delay = self.sprint_delay if sprint else self.walk_delay
+        interval = self.sprint_interval if sprint else self.walk_interval
+
+        if desired != self._held_dir:
+            self._held_dir = desired
+            self._timer = delay
+            return self.try_move(*desired)
+
+        self._timer -= dt
+        if self._timer > 0:
+            return False
+
+        moved = self.try_move(*desired)
+        self._timer = interval
+        return moved

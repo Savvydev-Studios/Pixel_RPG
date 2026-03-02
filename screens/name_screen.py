@@ -2,15 +2,16 @@ from __future__ import annotations
 import pygame
 
 from ui import Button, ButtonStyle, TextInput
+from ui.style import Fonts
 from .base import Screen
 
 
 class NameScreen(Screen):
     def __init__(self) -> None:
         super().__init__()
-        self.font_title = pygame.font.Font(None, 54)
-        self.font = pygame.font.Font(None, 28)
-        self.font_small = pygame.font.Font(None, 22)
+        self.font_title = Fonts.title()
+        self.font = Fonts.ui()
+        self.font_small = Fonts.small()
         self.style = ButtonStyle()
 
         self.name_input: TextInput | None = None
@@ -25,16 +26,16 @@ class NameScreen(Screen):
 
     def _rebuild_layout(self) -> None:
         surface = pygame.display.get_surface()
-        w, h = surface.get_size() if surface else (960, 540)
+        w, h = surface.get_size() if surface else (1280, 720)
 
-        panel_w = 520
+        panel_w = 560
         x0 = (w // 2) - (panel_w // 2)
 
-        name_rect = pygame.Rect(x0, h // 2 - 10, panel_w, 56)
+        name_rect = pygame.Rect(x0, h // 2 - 10, panel_w, 60)
         self.name_input = TextInput(name_rect, font=self.font, placeholder="Enter name...", max_len=16)
         self.name_input.set_focused(True)
 
-        cont_rect = pygame.Rect(x0, h // 2 + 70, panel_w, 56)
+        cont_rect = pygame.Rect(x0, h // 2 + 74, panel_w, 56)
 
         def go_next() -> None:
             if not self.manager:
@@ -63,6 +64,9 @@ class NameScreen(Screen):
                 self.continue_btn.activate()
                 return
 
+        if event.type == pygame.VIDEORESIZE:
+            self._rebuild_layout()
+
         if self.name_input:
             self.name_input.handle_event(event)
 
@@ -73,10 +77,10 @@ class NameScreen(Screen):
         w, h = surface.get_size()
 
         title = self.font_title.render("Your Name", True, (240, 240, 240))
-        surface.blit(title, title.get_rect(center=(w // 2, h // 2 - 140)))
+        surface.blit(title, title.get_rect(center=(w // 2, h // 2 - 150)))
 
         hint = self.font_small.render("Type your name • Enter to continue • ESC back", True, (200, 200, 200))
-        surface.blit(hint, hint.get_rect(center=(w // 2, h // 2 - 105)))
+        surface.blit(hint, hint.get_rect(center=(w // 2, h // 2 - 112)))
 
         if self.name_input:
             self.name_input.render(surface)

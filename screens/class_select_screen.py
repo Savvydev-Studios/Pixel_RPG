@@ -2,6 +2,7 @@ from __future__ import annotations
 import pygame
 
 from ui import Button, ButtonStyle
+from ui.style import Fonts
 from .base import Screen
 
 CLASSES = ["Warrior", "Tank", "Rogue", "Mage", "Ranger", "Cleric", "Berserker", "Assassin"]
@@ -10,9 +11,9 @@ CLASSES = ["Warrior", "Tank", "Rogue", "Mage", "Ranger", "Cleric", "Berserker", 
 class ClassSelectScreen(Screen):
     def __init__(self) -> None:
         super().__init__()
-        self.font_title = pygame.font.Font(None, 54)
-        self.font = pygame.font.Font(None, 28)
-        self.font_small = pygame.font.Font(None, 22)
+        self.font_title = Fonts.title()
+        self.font = Fonts.ui()
+        self.font_small = Fonts.small()
 
         self.style = ButtonStyle()
         self.class_index = 0
@@ -29,21 +30,21 @@ class ClassSelectScreen(Screen):
 
     def _rebuild_layout(self) -> None:
         surface = pygame.display.get_surface()
-        w, h = surface.get_size() if surface else (960, 540)
+        w, h = surface.get_size() if surface else (1280, 720)
 
-        panel_w = 620
+        panel_w = 720
         x0 = (w // 2) - (panel_w // 2)
 
-        self.preview_rect = pygame.Rect(x0, h // 2 - 110, panel_w, 170)
+        self.preview_rect = pygame.Rect(x0, h // 2 - 140, panel_w, 200)
 
-        picker_y = h // 2 + 80
-        arrow_w = 64
+        picker_y = h // 2 + 90
+        arrow_w = 72
         gap = 12
         class_w = panel_w - (arrow_w * 2) - (gap * 2)
 
-        left_rect = pygame.Rect(x0, picker_y, arrow_w, 56)
-        class_rect = pygame.Rect(x0 + arrow_w + gap, picker_y, class_w, 56)
-        right_rect = pygame.Rect(x0 + arrow_w + gap + class_w + gap, picker_y, arrow_w, 56)
+        left_rect = pygame.Rect(x0, picker_y, arrow_w, 60)
+        class_rect = pygame.Rect(x0 + arrow_w + gap, picker_y, class_w, 60)
+        right_rect = pygame.Rect(x0 + arrow_w + gap + class_w + gap, picker_y, arrow_w, 60)
 
         def prev_class() -> None:
             self.class_index = (self.class_index - 1) % len(CLASSES)
@@ -55,10 +56,10 @@ class ClassSelectScreen(Screen):
         self.btn_class = Button(class_rect, CLASSES[self.class_index], lambda: None, font=self.font, style=self.style)
         self.btn_next = Button(right_rect, ">", next_class, font=self.font, style=self.style)
 
-        btn_w = 240
+        btn_w = 260
         btn_h = 56
-        back_rect = pygame.Rect(x0, picker_y + 86, btn_w, btn_h)
-        cont_rect = pygame.Rect(x0 + panel_w - btn_w, picker_y + 86, btn_w, btn_h)
+        back_rect = pygame.Rect(x0, picker_y + 92, btn_w, btn_h)
+        cont_rect = pygame.Rect(x0 + panel_w - btn_w, picker_y + 92, btn_w, btn_h)
 
         def go_back() -> None:
             if self.manager:
@@ -93,6 +94,9 @@ class ClassSelectScreen(Screen):
             elif event.key in (pygame.K_RETURN, pygame.K_SPACE) and self.continue_btn:
                 self.continue_btn.activate()
 
+        if event.type == pygame.VIDEORESIZE:
+            self._rebuild_layout()
+
         for b in (self.btn_prev, self.btn_class, self.btn_next, self.back_btn, self.continue_btn):
             if b:
                 b.handle_event(event)
@@ -101,25 +105,22 @@ class ClassSelectScreen(Screen):
         w, h = surface.get_size()
 
         title = self.font_title.render("Choose Class", True, (240, 240, 240))
-        surface.blit(title, title.get_rect(center=(w // 2, h // 2 - 220)))
+        surface.blit(title, title.get_rect(center=(w // 2, h // 2 - 260)))
 
         hint = self.font_small.render("← / → to change • Enter to continue • ESC back", True, (200, 200, 200))
-        surface.blit(hint, hint.get_rect(center=(w // 2, h // 2 - 185)))
+        surface.blit(hint, hint.get_rect(center=(w // 2, h // 2 - 220)))
 
-        # Preview panel
         pygame.draw.rect(surface, (28, 28, 40), self.preview_rect, border_radius=18)
         pygame.draw.rect(surface, (105, 105, 140), self.preview_rect, width=2, border_radius=18)
 
         p_title = self.font_small.render("Preview (placeholder)", True, (200, 200, 200))
         surface.blit(p_title, (self.preview_rect.x + 14, self.preview_rect.y + 12))
 
-        # Placeholder silhouette
         cx = self.preview_rect.centerx
-        cy = self.preview_rect.y + 105
+        cy = self.preview_rect.y + 120
         pygame.draw.circle(surface, (180, 180, 200), (cx, cy - 36), 18)
         pygame.draw.rect(surface, (180, 180, 200), pygame.Rect(cx - 12, cy - 16, 24, 52), border_radius=8)
 
-        # Buttons
         if self.btn_class:
             self.btn_class.text = CLASSES[self.class_index]
 

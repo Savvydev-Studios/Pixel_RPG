@@ -3,6 +3,8 @@ import pygame
 
 from constants import TITLE
 from ui import Button, ButtonStyle
+from ui.style import Fonts
+from systems.controls import Controls
 from .base import Screen
 from .message_screen import MessageScreen
 
@@ -10,8 +12,8 @@ from .message_screen import MessageScreen
 class MenuScreen(Screen):
     def __init__(self) -> None:
         super().__init__()
-        self.font_title = pygame.font.Font(None, 64)
-        self.font = pygame.font.Font(None, 28)
+        self.font_title = Fonts.title()
+        self.font = Fonts.ui()
 
         self.buttons: list[Button] = []
         self.focus_index = 0
@@ -34,12 +36,12 @@ class MenuScreen(Screen):
 
         def go_new() -> None:
             if self.manager:
-                from .name_screen import NameScreen
-                self.manager.set(NameScreen())
+                from .character_create_screen import CharacterCreateScreen
+                self.manager.set(CharacterCreateScreen())
 
         def go_load() -> None:
             if self.manager:
-                self.manager.set(MessageScreen("Load Game", "Save system comes later (Step 8)."))
+                self.manager.set(MessageScreen("Load Game", "Save system comes later."))
 
         def go_quit() -> None:
             if self.manager:
@@ -62,29 +64,29 @@ class MenuScreen(Screen):
         for b in self.buttons:
             b.handle_event(event)
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE and self.manager:
-                self.manager.quit()
+        if Controls.keydown(event, "cancel") and self.manager:
+            self.manager.quit()
+            return
 
-            elif event.key in (pygame.K_UP, pygame.K_w):
-                self.focus_index = (self.focus_index - 1) % len(self.buttons)
-                self._apply_focus()
+        if Controls.keydown(event, "move_up"):
+            self.focus_index = (self.focus_index - 1) % len(self.buttons)
+            self._apply_focus()
+            return
 
-            elif event.key in (pygame.K_DOWN, pygame.K_s):
-                self.focus_index = (self.focus_index + 1) % len(self.buttons)
-                self._apply_focus()
+        if Controls.keydown(event, "move_down"):
+            self.focus_index = (self.focus_index + 1) % len(self.buttons)
+            self._apply_focus()
+            return
 
-            elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                self.buttons[self.focus_index].activate()
+        if Controls.keydown(event, "confirm"):
+            self.buttons[self.focus_index].activate()
+            return
 
     def render(self, surface: pygame.Surface) -> None:
         w, h = surface.get_size()
 
         title = self.font_title.render(TITLE, True, (240, 240, 240))
         surface.blit(title, title.get_rect(center=(w // 2, h // 2 - 140)))
-
-        subtitle = self.font.render("Mouse or ↑/↓ + Enter", True, (200, 200, 200))
-        surface.blit(subtitle, subtitle.get_rect(center=(w // 2, h // 2 - 95)))
 
         for b in self.buttons:
             b.render(surface)

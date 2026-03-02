@@ -1,6 +1,8 @@
 from __future__ import annotations
 import pygame
 
+from ui.style import Fonts
+
 from .base import Screen
 
 
@@ -9,8 +11,9 @@ class MessageScreen(Screen):
         super().__init__()
         self.title_text = title
         self.message_text = message
-        self.font_title = pygame.font.Font(None, 54)
-        self.font = pygame.font.Font(None, 28)
+        from ui.style import Fonts
+        self.font_title = Fonts.title()
+        self.font = Fonts.ui()
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and self.manager:

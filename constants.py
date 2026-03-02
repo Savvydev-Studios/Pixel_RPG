@@ -1,7 +1,7 @@
 TITLE = "Pixel RPG"
+DEV_MODE = True  # set True locally when developing
 
-WIDTH = 960
-HEIGHT = 540
 FPS = 60
 
-BG_COLOR = (18, 18, 24)
+WIDTH, HEIGHT = 1400, 800
+BG_COLOR = (18, 18, 26)

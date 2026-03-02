@@ -9,21 +9,21 @@ from screens import ScreenManager, MenuScreen
 
 class Game:
     """
-    Step 2: Add a screen system.
-    Game owns the loop and delegates input/update/render to the current screen.
+    Owns the window + loop.
+    Delegates input/update/render to the current screen.
     """
 
     def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption(TITLE)
 
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        # RESIZABLE window
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
         self.dt_clock = DeltaTime()
 
         self.running = True
 
-        # Screen system
         self.screens = ScreenManager(request_quit=self.stop)
         self.screens.set(MenuScreen())
 
@@ -45,6 +45,10 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
                 continue
+
+            # Handle resize at the Game level so the display surface actually changes
+            if event.type == pygame.VIDEORESIZE:
+                self.screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
 
             self.screens.handle_event(event)
 
